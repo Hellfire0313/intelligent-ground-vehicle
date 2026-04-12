@@ -12,7 +12,7 @@
 
 ---
 
-Built for [IGVC Robofest 5.0](https://robofest.co.in/), Sarathi is a 60 cm wide autonomous robot that **sees the road, reads markers, and navigates junctions** in real time. A Raspberry Pi 5 runs the full vision pipeline — yellow-line detection, ArUco marker commands, and RealSense depth-based obstacle avoidance — and streams drive commands to an Arduino Mega that handles motor control, 4-wheel steering, and encoder RPM feedback.
+Built for [IGVC Robofest 5.0](https://robofest.gujarat.gov.in/SchemeDetails/15), Sarathi is a 60 cm wide autonomous robot that **sees the road, reads markers, and navigates junctions** in real time. A Raspberry Pi 5 runs the full vision pipeline — yellow-line detection, ArUco marker commands, and RealSense depth-based obstacle avoidance — and streams drive commands to an Arduino Mega that handles motor control, 4-wheel steering, and encoder RPM feedback.
 
 > **Patent application filed** for the navigation and control methods described in this project.
 
