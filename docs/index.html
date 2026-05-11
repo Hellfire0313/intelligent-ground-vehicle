@@ -227,8 +227,8 @@
   /* GALLERY */
   .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-auto-rows: 260px;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 320px 240px;
     gap: 1px;
     background: var(--border);
     margin-top: 2.5rem;
@@ -240,17 +240,21 @@
     background: var(--bg3);
   }
 
-  .gallery-item.tall { grid-row: span 2; }
-  .gallery-item.wide { grid-column: span 2; }
+  /* Front view: tall left column */
+  .gallery-item:nth-child(1) { grid-row: span 2; }
 
   .gallery-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
     display: block;
-    filter: grayscale(15%);
+    filter: grayscale(10%);
     transition: filter 0.4s, transform 0.5s;
   }
+
+  /* Right view has lots of black — zoom in to the robot */
+  .gallery-item:nth-child(3) img { object-position: left center; }
 
   .gallery-item:hover img {
     filter: grayscale(0%);
@@ -260,13 +264,13 @@
   .gallery-cap {
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    padding: 0.6rem 1rem;
+    padding: 0.5rem 0.85rem;
     font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--text);
-    background: linear-gradient(transparent, rgba(10,10,10,0.88));
+    background: linear-gradient(transparent, rgba(10,10,10,0.9));
     opacity: 0;
     transition: opacity 0.3s;
   }
@@ -535,10 +539,10 @@
     footer { padding: 2rem 1.5rem; flex-direction: column; align-items: flex-start; }
     .gallery-grid {
       grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto;
       grid-auto-rows: 180px;
     }
-    .gallery-item.tall { grid-row: span 1; }
-    .gallery-item.wide { grid-column: span 2; }
+    .gallery-item:nth-child(1) { grid-row: span 1; }
     .video-grid { grid-template-columns: 1fr; }
   }
 </style>
@@ -591,28 +595,24 @@
   </p>
 
   <div class="gallery-grid reveal">
-    <div class="gallery-item tall">
-      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Front-view.png" alt="SARATHI front view" loading="lazy"/>
+    <div class="gallery-item">
+      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Front%20view.png" alt="SARATHI front view" loading="lazy"/>
       <span class="gallery-cap">Front view</span>
     </div>
     <div class="gallery-item">
-      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Top-view.png" alt="SARATHI top view" loading="lazy"/>
+      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Top%20view.png" alt="SARATHI top view" loading="lazy"/>
       <span class="gallery-cap">Top view</span>
     </div>
     <div class="gallery-item">
-      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Right-view.png" alt="SARATHI right view" loading="lazy"/>
-      <span class="gallery-cap">Right view</span>
-    </div>
-    <div class="gallery-item">
-      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Left-view.png" alt="SARATHI left view" loading="lazy"/>
+      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Left%20view.png" alt="SARATHI left view" loading="lazy"/>
       <span class="gallery-cap">Left view</span>
     </div>
-    <div class="gallery-item wide">
-      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Perspective-view.png" alt="SARATHI perspective view" loading="lazy"/>
+    <div class="gallery-item">
+      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Perspective%20view.png" alt="SARATHI perspective view" loading="lazy"/>
       <span class="gallery-cap">Perspective view</span>
     </div>
     <div class="gallery-item">
-      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Bottom-view.png" alt="SARATHI bottom view" loading="lazy"/>
+      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Bottom%20view.png" alt="SARATHI bottom view" loading="lazy"/>
       <span class="gallery-cap">Bottom view</span>
     </div>
   </div>
@@ -753,7 +753,7 @@
 
   <div class="video-grid reveal">
     <div class="video-card">
-      <div class="video-label">Task Compleletion</div>
+      <div class="video-label">Run 01 — Lane Following</div>
       <div class="video-wrap">
         <iframe
           src="https://drive.google.com/file/d/13OvUFQ0yWuY_Bn7menluqCZo_RDSq-eF/preview"
@@ -764,7 +764,7 @@
       <p class="video-desc">Full autonomous lap with 3-tier lane following and PD steering control.</p>
     </div>
     <div class="video-card">
-      <div class="video-label">Making From Scratch</div>
+      <div class="video-label">Run 02 — Obstacle Avoidance</div>
       <div class="video-wrap">
         <iframe
           src="https://drive.google.com/file/d/1Ol1vgidWYUHk4HBcROEnfFuSc-oF4-O2/preview"
