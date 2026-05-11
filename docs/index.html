@@ -280,10 +280,11 @@
   /* VIDEO */
   .video-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 1px;
     background: var(--border);
     margin-top: 2.5rem;
+    max-width: 900px;
   }
 
   .video-card {
@@ -753,7 +754,7 @@
 
   <div class="video-grid reveal">
     <div class="video-card">
-      <div class="video-label">Run 01 — Lane Following</div>
+      <div class="video-label">Objective Completion</div>
       <div class="video-wrap">
         <iframe
           src="https://drive.google.com/file/d/13OvUFQ0yWuY_Bn7menluqCZo_RDSq-eF/preview"
@@ -762,17 +763,6 @@
         </iframe>
       </div>
       <p class="video-desc">Full autonomous lap with 3-tier lane following and PD steering control.</p>
-    </div>
-    <div class="video-card">
-      <div class="video-label">Run 02 — Obstacle Avoidance</div>
-      <div class="video-wrap">
-        <iframe
-          src="https://drive.google.com/file/d/1Ol1vgidWYUHk4HBcROEnfFuSc-oF4-O2/preview"
-          allow="autoplay"
-          allowfullscreen>
-        </iframe>
-      </div>
-      <p class="video-desc">RealSense D455 depth-based dodge, escape, and recover state machine in action.</p>
     </div>
   </div>
 </section>
