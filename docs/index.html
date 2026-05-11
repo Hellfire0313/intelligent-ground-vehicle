@@ -31,7 +31,6 @@
     overflow-x: hidden;
   }
 
-  /* ── NOISE OVERLAY ── */
   body::before {
     content: '';
     position: fixed;
@@ -42,7 +41,6 @@
     opacity: 0.4;
   }
 
-  /* ── GRID LINES ── */
   body::after {
     content: '';
     position: fixed;
@@ -58,7 +56,7 @@
 
   section, nav, footer { position: relative; z-index: 1; }
 
-  /* ── NAV ── */
+  /* NAV */
   nav {
     position: fixed;
     top: 0; left: 0; right: 0;
@@ -91,7 +89,7 @@
   }
   .nav-links a:hover { color: var(--text); }
 
-  /* ── HERO ── */
+  /* HERO */
   .hero {
     min-height: 100vh;
     display: flex;
@@ -187,7 +185,6 @@
 
   .btn.outline:hover { border-color: var(--text); }
 
-  /* Yellow lane line decorations */
   .lane-left, .lane-right {
     position: absolute;
     top: 0; bottom: 0;
@@ -204,7 +201,7 @@
   .lane-left { left: 1.5rem; }
   .lane-right { right: 1.5rem; }
 
-  /* ── SECTION BASE ── */
+  /* SECTION BASE */
   .section {
     padding: 6rem 3rem;
     border-top: 1px solid var(--border);
@@ -227,7 +224,103 @@
     margin-bottom: 1.5rem;
   }
 
-  /* ── HOW IT WORKS ── */
+  /* GALLERY */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: 260px;
+    gap: 1px;
+    background: var(--border);
+    margin-top: 2.5rem;
+  }
+
+  .gallery-item {
+    position: relative;
+    overflow: hidden;
+    background: var(--bg3);
+  }
+
+  .gallery-item.tall { grid-row: span 2; }
+  .gallery-item.wide { grid-column: span 2; }
+
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: grayscale(15%);
+    transition: filter 0.4s, transform 0.5s;
+  }
+
+  .gallery-item:hover img {
+    filter: grayscale(0%);
+    transform: scale(1.04);
+  }
+
+  .gallery-cap {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 0.6rem 1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text);
+    background: linear-gradient(transparent, rgba(10,10,10,0.88));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .gallery-item:hover .gallery-cap { opacity: 1; }
+
+  /* VIDEO */
+  .video-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    margin-top: 2.5rem;
+  }
+
+  .video-card {
+    background: var(--bg3);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .video-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--yellow);
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .video-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    padding: 0.6rem 1.25rem 1rem;
+  }
+
+  .video-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: var(--bg);
+  }
+
+  .video-wrap iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  /* TIERS */
   .tiers {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -268,7 +361,7 @@
 
   .tier p { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
 
-  /* ── ARUCO ── */
+  /* ARUCO */
   .aruco-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -317,7 +410,7 @@
 
   .aruco-extend span { color: var(--yellow); }
 
-  /* ── SPECS ── */
+  /* SPECS */
   .specs-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -354,7 +447,7 @@
     text-align: right;
   }
 
-  /* ── OBSTACLE BAR ── */
+  /* OBSTACLE */
   .obs-bars { margin-top: 3rem; display: flex; flex-direction: column; gap: 1px; background: var(--border); }
 
   .obs-row {
@@ -391,7 +484,7 @@
     text-align: right;
   }
 
-  /* ── FOOTER ── */
+  /* FOOTER */
   footer {
     border-top: 1px solid var(--border);
     padding: 2.5rem 3rem;
@@ -417,7 +510,7 @@
     letter-spacing: 0.08em;
   }
 
-  /* ── ANIMATIONS ── */
+  /* ANIMATIONS */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -431,7 +524,7 @@
 
   .reveal.visible { opacity: 1; transform: none; }
 
-  /* ── RESPONSIVE ── */
+  /* RESPONSIVE */
   @media (max-width: 768px) {
     nav { padding: 1rem 1.5rem; }
     .nav-links { display: none; }
@@ -440,6 +533,13 @@
     .tiers, .aruco-grid, .specs-grid { grid-template-columns: 1fr; }
     .obs-row { grid-template-columns: 100px 1fr 60px; gap: 1rem; padding: 1rem 1.5rem; }
     footer { padding: 2rem 1.5rem; flex-direction: column; align-items: flex-start; }
+    .gallery-grid {
+      grid-template-columns: 1fr 1fr;
+      grid-auto-rows: 180px;
+    }
+    .gallery-item.tall { grid-row: span 1; }
+    .gallery-item.wide { grid-column: span 2; }
+    .video-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -449,9 +549,11 @@
 <nav>
   <a href="#" class="nav-logo">SARATHI</a>
   <ul class="nav-links">
+    <li><a href="#gallery">Robot</a></li>
     <li><a href="#how">How it works</a></li>
     <li><a href="#aruco">ArUco</a></li>
     <li><a href="#specs">Specs</a></li>
+    <li><a href="#demo">Demo</a></li>
     <li><a href="https://github.com/Hellfire0313/intelligent-ground-vehicle" target="_blank">GitHub</a></li>
     <li><a href="https://hellfire0313.github.io/" target="_blank">About Anshul</a></li>
   </ul>
@@ -480,6 +582,42 @@
   </div>
 </section>
 
+<!-- GALLERY -->
+<section class="section" id="gallery">
+  <p class="section-label reveal">00 — Robot</p>
+  <h2 class="section-title reveal">Meet SARATHI</h2>
+  <p class="reveal" style="color:var(--muted); max-width:520px; font-size:0.9rem;">
+    60 cm chassis, six motors, two cameras — built for IGVC Robofest 5.0.
+  </p>
+
+  <div class="gallery-grid reveal">
+    <div class="gallery-item tall">
+      <img src="../media/Front view.png" alt="SARATHI front view" loading="lazy"/>
+      <span class="gallery-cap">Front view</span>
+    </div>
+    <div class="gallery-item">
+      <img src="../media/Top view.png" alt="SARATHI top view" loading="lazy"/>
+      <span class="gallery-cap">Top view</span>
+    </div>
+    <div class="gallery-item">
+      <img src="../media/Right view.png" alt="SARATHI right view" loading="lazy"/>
+      <span class="gallery-cap">Right view</span>
+    </div>
+    <div class="gallery-item">
+      <img src="../media/Left view.png" alt="SARATHI left view" loading="lazy"/>
+      <span class="gallery-cap">Left view</span>
+    </div>
+    <div class="gallery-item wide">
+      <img src="../media/Perspective view.png" alt="SARATHI perspective view" loading="lazy"/>
+      <span class="gallery-cap">Perspective view</span>
+    </div>
+    <div class="gallery-item">
+      <img src="../media/Bottom view.png" alt="SARATHI bottom view" loading="lazy"/>
+      <span class="gallery-cap">Bottom view</span>
+    </div>
+  </div>
+</section>
+
 <!-- HOW IT WORKS -->
 <section class="section" id="how">
   <p class="section-label reveal">01 — Navigation</p>
@@ -503,7 +641,6 @@
     </div>
   </div>
 
-  <!-- Obstacle avoidance -->
   <p class="section-label reveal" style="margin-top:5rem;">02 — Safety</p>
   <h2 class="section-title reveal">Obstacle Avoidance<br/>State Machine</h2>
   <p class="reveal" style="color:var(--muted); max-width:560px; font-size:0.9rem; margin-bottom:0;">
@@ -528,7 +665,6 @@
     </div>
   </div>
 
-  <!-- State machine cards -->
   <div class="tiers reveal" style="margin-top:1px;">
     <div class="tier">
       <div class="tier-num">D</div>
@@ -604,6 +740,40 @@
     <div class="spec-row"><span class="spec-key">Serial</span><span class="spec-val">UART 9600 baud</span></div>
     <div class="spec-row"><span class="spec-key">Chassis Width</span><span class="spec-val">60 cm</span></div>
     <div class="spec-row"><span class="spec-key">ArUco Dict</span><span class="spec-val">DICT_4X4_50</span></div>
+  </div>
+</section>
+
+<!-- DEMO VIDEOS -->
+<section class="section" id="demo">
+  <p class="section-label reveal">05 — Demo</p>
+  <h2 class="section-title reveal">SARATHI<br/>in Action</h2>
+  <p class="reveal" style="color:var(--muted); max-width:520px; font-size:0.9rem; margin-bottom:0;">
+    Autonomous runs showing lane following, ArUco marker detection, and obstacle avoidance in real time.
+  </p>
+
+  <div class="video-grid reveal">
+    <div class="video-card">
+      <div class="video-label">Objective Completion</div>
+      <div class="video-wrap">
+        <iframe
+          src="https://drive.google.com/file/d/13OvUFQ0yWuY_Bn7menluqCZo_RDSq-eF/preview"
+          allow="autoplay"
+          allowfullscreen>
+        </iframe>
+      </div>
+      <p class="video-desc">Full autonomous lap with 3-tier lane following and PD steering control.</p>
+    </div>
+    <div class="video-card">
+      <div class="video-label">Making From Scratch</div>
+      <div class="video-wrap">
+        <iframe
+          src="https://drive.google.com/file/d/1Ol1vgidWYUHk4HBcROEnfFuSc-oF4-O2/preview"
+          allow="autoplay"
+          allowfullscreen>
+        </iframe>
+      </div>
+      <p class="video-desc">RealSense D455 depth-based dodge, escape, and recover state machine in action.</p>
+    </div>
   </div>
 </section>
 
