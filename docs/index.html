@@ -3,787 +3,412 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>SARATHI — Autonomous Lane-Following Robot</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<title>SARATHI — Autonomous Lane-Following Robot — IGVC Robofest 5.0</title>
+<meta name="description" content="Technical build log: a 60cm autonomous ground vehicle with 3-tier lane following, RealSense-based obstacle avoidance, and ArUco marker navigation. Built for IGVC Robofest 5.0."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet"/>
 <style>
-  :root {
-    --yellow: #F5C400;
-    --yellow-dim: #8a6e00;
-    --bg: #0a0a0a;
-    --bg2: #111111;
-    --bg3: #181818;
-    --text: #f0ede6;
-    --muted: #777;
-    --border: #2a2a2a;
-    --accent: #F5C400;
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --paper:#eeece4;
+    --paper-2:#e4e1d6;
+    --ink:#1b1a17;
+    --ink-dim:#5c594e;
+    --line:#c9c5b6;
+    --line-soft:#dcd9cc;
+    --orange:#d84e1f;
+    --yellow:#c98e00;
+    --blue:#1f4b8f;
+    --white:#f7f6f0;
   }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Syne', sans-serif;
-    font-size: 16px;
-    line-height: 1.7;
-    overflow-x: hidden;
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'IBM Plex Sans',-apple-system,sans-serif;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, var(--line-soft) 39px, var(--line-soft) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, var(--line-soft) 39px, var(--line-soft) 40px),
+      var(--paper);
+    color:var(--ink);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
   }
-
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.4;
-  }
-
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(var(--border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 80px 80px;
-    opacity: 0.3;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  section, nav, footer { position: relative; z-index: 1; }
-
-  /* NAV */
-  nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.2rem 3rem;
-    border-bottom: 1px solid var(--border);
-    background: rgba(10,10,10,0.85);
-    backdrop-filter: blur(12px);
-    z-index: 100;
-  }
-
-  .nav-logo {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.85rem;
-    letter-spacing: 0.2em;
-    color: var(--yellow);
-    text-decoration: none;
-  }
-
-  .nav-links { display: flex; gap: 2rem; list-style: none; }
-  .nav-links a {
-    font-size: 0.78rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .nav-links a:hover { color: var(--text); }
-
-  /* HERO */
-  .hero {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 0 3rem 5rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .hero-tag {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: var(--yellow);
-    margin-bottom: 1.5rem;
-    opacity: 0;
-    animation: fadeUp 0.6s 0.2s forwards;
-  }
-
-  .hero h1 {
-    font-size: clamp(5rem, 14vw, 13rem);
-    font-weight: 800;
-    line-height: 0.88;
-    letter-spacing: -0.03em;
-    color: var(--text);
-    opacity: 0;
-    animation: fadeUp 0.7s 0.4s forwards;
-  }
-
-  .hero h1 span { color: var(--yellow); }
-
-  .hero-sub {
-    margin-top: 2rem;
-    font-size: 1.05rem;
-    color: var(--muted);
-    max-width: 480px;
-    opacity: 0;
-    animation: fadeUp 0.7s 0.6s forwards;
-  }
-
-  .hero-badges {
-    margin-top: 2rem;
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    opacity: 0;
-    animation: fadeUp 0.7s 0.8s forwards;
-  }
-
-  .badge {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.1em;
-    padding: 0.35rem 0.9rem;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    text-transform: uppercase;
-  }
-
-  .badge.accent { border-color: var(--yellow); color: var(--yellow); }
-
-  .hero-cta {
-    margin-top: 3rem;
-    display: flex;
-    gap: 1rem;
-    opacity: 0;
-    animation: fadeUp 0.7s 1s forwards;
-  }
-
-  .btn {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    padding: 0.85rem 2rem;
-    text-decoration: none;
-    border: 1px solid var(--yellow);
-    color: var(--bg);
-    background: var(--yellow);
-    transition: all 0.2s;
-    display: inline-block;
-  }
-
-  .btn:hover { background: transparent; color: var(--yellow); }
-
-  .btn.outline {
-    background: transparent;
-    color: var(--text);
-    border-color: var(--border);
-  }
-
-  .btn.outline:hover { border-color: var(--text); }
-
-  .lane-left, .lane-right {
-    position: absolute;
-    top: 0; bottom: 0;
-    width: 3px;
-    background: repeating-linear-gradient(
-      to bottom,
-      var(--yellow) 0px,
-      var(--yellow) 40px,
-      transparent 40px,
-      transparent 70px
-    );
-    opacity: 0.18;
-  }
-  .lane-left { left: 1.5rem; }
-  .lane-right { right: 1.5rem; }
-
-  /* SECTION BASE */
-  .section {
-    padding: 6rem 3rem;
-    border-top: 1px solid var(--border);
-  }
-
-  .section-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--yellow);
-    margin-bottom: 1rem;
-  }
-
-  .section-title {
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    font-weight: 800;
-    line-height: 1.05;
-    letter-spacing: -0.02em;
-    margin-bottom: 1.5rem;
-  }
-
-  /* GALLERY */
-  .gallery-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    grid-template-rows: 320px 240px;
-    gap: 1px;
-    background: var(--border);
-    margin-top: 2.5rem;
-  }
-
-  .gallery-item {
-    position: relative;
-    overflow: hidden;
-    background: var(--bg3);
-  }
-
-  /* Front view: tall left column */
-  .gallery-item:nth-child(1) { grid-row: span 2; }
-
-  .gallery-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    display: block;
-    filter: grayscale(10%);
-    transition: filter 0.4s, transform 0.5s;
-  }
-
-  /* Right view has lots of black — zoom in to the robot */
-  .gallery-item:nth-child(3) img { object-position: left center; }
-
-  .gallery-item:hover img {
-    filter: grayscale(0%);
-    transform: scale(1.04);
-  }
-
-  .gallery-cap {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    padding: 0.5rem 0.85rem;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--text);
-    background: linear-gradient(transparent, rgba(10,10,10,0.9));
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .gallery-item:hover .gallery-cap { opacity: 1; }
-
-  /* VIDEO */
-  .video-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1px;
-    background: var(--border);
-    margin-top: 2.5rem;
-    max-width: 900px;
-  }
-
-  .video-card {
-    background: var(--bg3);
-    display: flex;
-    flex-direction: column;
-  }
-
-  .video-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--yellow);
-    padding: 1rem 1.25rem 0.75rem;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .video-desc {
-    font-size: 0.82rem;
-    color: var(--muted);
-    padding: 0.6rem 1.25rem 1rem;
-  }
-
-  .video-wrap {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    background: var(--bg);
-  }
-
-  .video-wrap iframe {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
-    display: block;
-  }
-
-  /* TIERS */
-  .tiers {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: var(--border);
-    margin-top: 3rem;
-  }
-
-  .tier {
-    background: var(--bg);
-    padding: 2.5rem 2rem;
-    position: relative;
-    overflow: hidden;
-    transition: background 0.2s;
-  }
-
-  .tier:hover { background: var(--bg3); }
-
-  .tier-num {
-    font-family: 'Space Mono', monospace;
-    font-size: 4rem;
-    font-weight: 700;
-    color: var(--border);
-    line-height: 1;
-    margin-bottom: 1rem;
-    transition: color 0.2s;
-  }
-
-  .tier:hover .tier-num { color: var(--yellow-dim); }
-
-  .tier h3 {
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.75rem;
-    color: var(--yellow);
-  }
-
-  .tier p { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
-
-  /* ARUCO */
-  .aruco-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1px;
-    background: var(--border);
-    margin-top: 3rem;
-  }
-
-  .aruco-card {
-    background: var(--bg);
-    padding: 2rem 1.5rem;
-    text-align: center;
-    transition: background 0.2s;
-  }
-
-  .aruco-card:hover { background: var(--bg3); }
-
-  .aruco-id {
-    font-family: 'Space Mono', monospace;
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--yellow);
-    line-height: 1;
-    margin-bottom: 0.75rem;
-  }
-
-  .aruco-label {
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-  }
-
-  .aruco-sub { font-size: 0.75rem; color: var(--muted); }
-
-  .aruco-extend {
-    margin-top: 2rem;
-    padding: 1.5rem 2rem;
-    border: 1px solid var(--border);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.78rem;
-    color: var(--muted);
-    line-height: 1.8;
-  }
-
-  .aruco-extend span { color: var(--yellow); }
-
-  /* SPECS */
-  .specs-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1px;
-    background: var(--border);
-    margin-top: 3rem;
-  }
-
-  .spec-row {
-    background: var(--bg);
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    padding: 1.25rem 2rem;
-    gap: 2rem;
-    transition: background 0.2s;
-  }
-
-  .spec-row:hover { background: var(--bg3); }
-
-  .spec-key {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-    white-space: nowrap;
-  }
-
-  .spec-val {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text);
-    text-align: right;
-  }
-
-  /* OBSTACLE */
-  .obs-bars { margin-top: 3rem; display: flex; flex-direction: column; gap: 1px; background: var(--border); }
-
-  .obs-row {
-    background: var(--bg);
-    display: grid;
-    grid-template-columns: 140px 1fr 80px;
-    align-items: center;
-    gap: 2rem;
-    padding: 1.25rem 2rem;
-    transition: background 0.2s;
-  }
-
-  .obs-row:hover { background: var(--bg3); }
-
-  .obs-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .obs-bar-wrap { height: 6px; background: var(--border); position: relative; }
-
-  .obs-bar-fill {
-    height: 100%;
-    background: var(--yellow);
-    transition: width 1s ease;
-  }
-
-  .obs-dist {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.78rem;
-    color: var(--muted);
-    text-align: right;
-  }
-
-  /* FOOTER */
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 2.5rem 3rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .footer-name {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
-    color: var(--yellow);
-    text-transform: uppercase;
-  }
-
-  .footer-right {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.68rem;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-  }
-
-  /* ANIMATIONS */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .reveal {
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-
-  .reveal.visible { opacity: 1; transform: none; }
-
-  /* RESPONSIVE */
-  @media (max-width: 768px) {
-    nav { padding: 1rem 1.5rem; }
-    .nav-links { display: none; }
-    .hero { padding: 0 1.5rem 4rem; }
-    .section { padding: 4rem 1.5rem; }
-    .tiers, .aruco-grid, .specs-grid { grid-template-columns: 1fr; }
-    .obs-row { grid-template-columns: 100px 1fr 60px; gap: 1rem; padding: 1rem 1.5rem; }
-    footer { padding: 2rem 1.5rem; flex-direction: column; align-items: flex-start; }
-    .gallery-grid {
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto;
-      grid-auto-rows: 180px;
-    }
-    .gallery-item:nth-child(1) { grid-row: span 1; }
-    .video-grid { grid-template-columns: 1fr; }
+  .container{max-width:1080px;margin:0 auto;padding:0 24px}
+  .mono{font-family:'IBM Plex Mono',monospace}
+
+  /* Nav */
+  nav{position:sticky;top:0;z-index:100;background:rgba(238,236,228,0.92);backdrop-filter:blur(6px);border-bottom:2px solid var(--ink)}
+  nav .container{display:flex;align-items:center;justify-content:space-between;height:56px}
+  nav .logo{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.85rem;letter-spacing:.02em;color:var(--ink);text-decoration:none}
+  nav .logo span{color:var(--orange)}
+  nav .links{display:flex;gap:28px}
+  nav .links a{color:var(--ink-dim);text-decoration:none;font-size:.78rem;font-weight:500;font-family:'IBM Plex Mono',monospace;letter-spacing:.02em;transition:color .15s}
+  nav .links a:hover{color:var(--orange)}
+
+  /* Title block */
+  header.titleblock{padding:56px 0 0}
+  .tb-frame{border:2px solid var(--ink);background:var(--white)}
+  .tb-top{padding:40px 40px 32px;border-bottom:2px solid var(--ink)}
+  .tb-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);font-weight:600;margin-bottom:14px}
+  .tb-top h1{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:700;font-size:clamp(2rem,5vw,3.2rem);letter-spacing:-0.01em;line-height:1.08;margin-bottom:18px;text-transform:uppercase}
+  .tb-top p{color:var(--ink-dim);max-width:620px;font-size:1rem;line-height:1.7}
+  .tb-fields{display:grid;grid-template-columns:repeat(4,1fr)}
+  .tb-field{padding:18px 24px;border-right:1px solid var(--line);border-top:1px solid var(--line)}
+  .tb-field:last-child{border-right:none}
+  .tb-field .k{font-family:'IBM Plex Mono',monospace;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px}
+  .tb-field .v{font-family:'IBM Plex Mono',monospace;font-size:.95rem;font-weight:600}
+  .tb-field .v.orange{color:var(--orange)}
+
+  .cta-row{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;font-family:'IBM Plex Mono',monospace;font-size:.8rem;font-weight:600;text-decoration:none;border:2px solid var(--ink);transition:all .15s}
+  .btn-primary{background:var(--ink);color:var(--paper)}
+  .btn-primary:hover{background:var(--orange);border-color:var(--orange);color:var(--white)}
+  .btn-secondary{background:transparent;color:var(--ink)}
+  .btn-secondary:hover{background:var(--ink);color:var(--paper)}
+
+  section{padding:64px 0}
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:8px;border-bottom:2px solid var(--ink);padding-bottom:12px}
+  .sec-num{font-family:'IBM Plex Mono',monospace;font-size:.85rem;color:var(--orange);font-weight:700}
+  .sec-title{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:700;font-size:1.5rem;text-transform:uppercase;letter-spacing:.01em}
+  .sec-desc{color:var(--ink-dim);max-width:640px;font-size:.95rem;margin:16px 0 32px;line-height:1.7}
+
+  /* Gallery — technical drawing style plates */
+  .gallery-grid{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:280px 220px;gap:1px;background:var(--ink);border:1px solid var(--ink);margin-top:8px}
+  .gallery-item{position:relative;overflow:hidden;background:var(--white)}
+  .gallery-item:nth-child(1){grid-row:span 2}
+  .gallery-item img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;filter:grayscale(35%) contrast(1.05);transition:filter .35s}
+  .gallery-item:nth-child(3) img{object-position:left center}
+  .gallery-item:hover img{filter:grayscale(0%) contrast(1)}
+  .gallery-cap{position:absolute;bottom:0;left:0;right:0;padding:6px 12px;font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--white);background:var(--ink)}
+
+  /* Phase panels (reused pattern from tier system) */
+  .phases{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--ink);margin-top:8px}
+  .phase{padding:28px 26px;border-right:1px solid var(--ink)}
+  .phase:last-child{border-right:none}
+  .phase .tag{font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--white);background:var(--ink);display:inline-block;padding:3px 10px;margin-bottom:14px}
+  .phase.p-warn .tag{background:var(--yellow)}
+  .phase.p-danger .tag{background:var(--orange)}
+  .phase h3{font-size:1.02rem;font-weight:700;margin-bottom:10px}
+  .phase p{color:var(--ink-dim);font-size:.88rem;line-height:1.65}
+  .phase code{font-family:'IBM Plex Mono',monospace;background:var(--paper-2);padding:1px 6px;font-size:.82rem}
+
+  /* Obstacle range bar chart */
+  .obs-table{border:1px solid var(--ink);margin-top:32px}
+  .obs-row{display:grid;grid-template-columns:160px 1fr 90px;align-items:center;gap:16px;padding:14px 20px;border-top:1px solid var(--line)}
+  .obs-row:first-child{border-top:none}
+  .obs-label{font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+  .obs-bar-wrap{height:8px;background:var(--paper-2);border:1px solid var(--line-soft)}
+  .obs-bar-fill{height:100%}
+  .obs-dist{font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--ink-dim);text-align:right}
+
+  /* ArUco table */
+  table.spec{width:100%;border-collapse:collapse;border:1px solid var(--ink);margin-top:8px}
+  table.spec th{text-align:left;padding:12px 18px;font-family:'IBM Plex Mono',monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--white);background:var(--ink)}
+  table.spec td{padding:11px 18px;font-size:.88rem;border-top:1px solid var(--line)}
+  table.spec tr:first-child td{border-top:none}
+  table.spec code{font-family:'IBM Plex Mono',monospace;background:var(--paper-2);padding:2px 7px;font-size:.85rem}
+  .prio{font-family:'IBM Plex Mono',monospace;font-size:.72rem;font-weight:700}
+  .prio.p1{color:var(--orange)}
+  .prio.p2{color:var(--blue)}
+  .prio.p3{color:var(--ink-dim)}
+
+  .note-box{margin-top:24px;padding:16px 20px;border:1px solid var(--ink);background:var(--white);font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:var(--ink-dim);line-height:1.8}
+  .note-box span{color:var(--orange);font-weight:600}
+
+  /* Hardware spec list */
+  .hw-list{border:1px solid var(--ink);margin-top:8px}
+  .hw-row{display:grid;grid-template-columns:200px 1fr;border-top:1px solid var(--line)}
+  .hw-row:first-child{border-top:none}
+  .hw-row .name{padding:14px 20px;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.85rem;background:var(--paper-2);border-right:1px solid var(--line)}
+  .hw-row .desc{padding:14px 20px;font-size:.88rem;color:var(--ink-dim);line-height:1.6;text-align:right}
+
+  /* Diagram wrap for pipeline SVG */
+  .diagram-wrap{border:1px solid var(--ink);background:var(--white);padding:24px;margin-top:32px;overflow-x:auto}
+
+  /* Video */
+  .video-card{border:1px solid var(--ink);margin-top:32px;max-width:900px;background:var(--white)}
+  .video-label{font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--white);background:var(--ink);padding:10px 18px}
+  .video-desc{font-size:.85rem;color:var(--ink-dim);padding:12px 18px 4px}
+  .video-wrap{position:relative;width:100%;aspect-ratio:16/9;background:var(--paper-2);border-top:1px solid var(--ink)}
+  .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none;display:block}
+
+  .author-section{padding:64px 0;border-top:2px solid var(--ink)}
+  footer{padding:24px 0;border-top:1px solid var(--line);color:var(--ink-dim);font-size:.78rem;font-family:'IBM Plex Mono',monospace;text-align:center}
+  footer a{color:var(--ink-dim);text-decoration:none}
+  footer a:hover{color:var(--orange)}
+
+  @media (max-width:760px){
+    .tb-fields{grid-template-columns:repeat(2,1fr)}
+    .phases{grid-template-columns:1fr}
+    .phase{border-right:none;border-bottom:1px solid var(--ink)}
+    .phase:last-child{border-bottom:none}
+    .hw-row{grid-template-columns:1fr}
+    .hw-row .name{border-right:none;border-bottom:1px solid var(--line)}
+    .hw-row .desc{text-align:left}
+    nav .links{display:none}
+    .gallery-grid{grid-template-columns:1fr 1fr;grid-template-rows:auto;grid-auto-rows:160px}
+    .gallery-item:nth-child(1){grid-row:span 1}
+    .obs-row{grid-template-columns:100px 1fr 60px;gap:10px;padding:12px 14px}
   }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
-  <a href="#" class="nav-logo">SARATHI</a>
-  <ul class="nav-links">
-    <li><a href="#gallery">Robot</a></li>
-    <li><a href="#how">How it works</a></li>
-    <li><a href="#aruco">ArUco</a></li>
-    <li><a href="#specs">Specs</a></li>
-    <li><a href="#demo">Demo</a></li>
-    <li><a href="https://github.com/Hellfire0313/intelligent-ground-vehicle" target="_blank">GitHub</a></li>
-    <li><a href="https://hellfire0313.github.io/" target="_blank">About Anshul</a></li>
-  </ul>
+  <div class="container">
+    <a href="#" class="logo">SARATHI<span>_</span></a>
+    <div class="links">
+      <a href="#gallery">ROBOT</a>
+      <a href="#how-it-works">NAVIGATION</a>
+      <a href="#aruco">MARKERS</a>
+      <a href="#hardware">HARDWARE</a>
+      <a href="#demo">DEMO</a>
+      <a href="https://github.com/Hellfire0313/intelligent-ground-vehicle">SOURCE</a>
+    </div>
+  </div>
 </nav>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="lane-left"></div>
-  <div class="lane-right"></div>
-
-  <p class="hero-tag">Team Sarathi &nbsp;·&nbsp; IGVC Robofest 5.0</p>
-  <h1>SAR<span>A</span>THI</h1>
-  <p class="hero-sub">A 60 cm autonomous robot that sees the road, reads markers, and navigates junctions in real time.</p>
-
-  <div class="hero-badges">
-    <span class="badge accent">Patent Pending</span>
-    <span class="badge">RPi 5 + Arduino Mega</span>
-    <span class="badge">RealSense D455</span>
-    <span class="badge">ArUco Navigation</span>
-    <span class="badge">IGVC Robofest 5.0</span>
+<header class="titleblock">
+  <div class="container">
+    <div class="tb-frame">
+      <div class="tb-top">
+        <div class="tb-eyebrow">Build Log — IGVC Robofest 5.0 · Team Sarathi</div>
+        <h1>Autonomous Lane-Following<br/>Ground Vehicle</h1>
+        <p>A 60cm autonomous robot that follows painted lane lines with a 3-tier fallback system, avoids obstacles using depth sensing, and executes junction manoeuvres from ArUco markers — no remote control during the autonomous run.</p>
+        <div class="cta-row">
+          <a href="https://github.com/Hellfire0313/intelligent-ground-vehicle" class="btn btn-primary">VIEW SOURCE →</a>
+          <a href="#how-it-works" class="btn btn-secondary">READ THE BUILD ↓</a>
+        </div>
+      </div>
+      <div class="tb-fields">
+        <div class="tb-field"><div class="k">Status</div><div class="v orange">Patent Pending</div></div>
+        <div class="tb-field"><div class="k">Compute</div><div class="v">RPi 5 + Mega 2560</div></div>
+        <div class="tb-field"><div class="k">Depth</div><div class="v">RealSense D455</div></div>
+        <div class="tb-field"><div class="k">Markers</div><div class="v">ArUco 4×4_50</div></div>
+      </div>
+    </div>
   </div>
+</header>
 
-  <div class="hero-cta">
-    <a href="https://github.com/Hellfire0313/intelligent-ground-vehicle" target="_blank" class="btn">View on GitHub</a>
-    <a href="#how" class="btn outline">How it works</a>
-  </div>
-</section>
+<section id="gallery">
+  <div class="container">
+    <div class="sec-head"><span class="sec-num">01</span><span class="sec-title">Vehicle Views</span></div>
+    <p class="sec-desc">60cm chassis, six drive motors, dual camera stack — lane camera and RealSense depth sensor mounted forward-facing.</p>
 
-<!-- GALLERY -->
-<section class="section" id="gallery">
-  <p class="section-label reveal">00 — Robot</p>
-  <h2 class="section-title reveal">Meet SARATHI</h2>
-  <p class="reveal" style="color:var(--muted); max-width:520px; font-size:0.9rem;">
-    60 cm chassis, six motors, two cameras — built for IGVC Robofest 5.0.
-  </p>
-
-  <div class="gallery-grid reveal">
-    <div class="gallery-item">
-      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Front-view.png" alt="SARATHI front view" loading="lazy"/>
-      <span class="gallery-cap">Front view</span>
-    </div>
-    <div class="gallery-item">
-      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Top-view.png" alt="SARATHI top view" loading="lazy"/>
-      <span class="gallery-cap">Top view</span>
-    </div>
-    <div class="gallery-item">
-      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Left-view.png" alt="SARATHI left view" loading="lazy"/>
-      <span class="gallery-cap">Left view</span>
-    </div>
-    <div class="gallery-item">
-      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Perspective-view.png" alt="SARATHI perspective view" loading="lazy"/>
-      <span class="gallery-cap">Perspective view</span>
-    </div>
-    <div class="gallery-item">
-      <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Bottom-view.png" alt="SARATHI bottom view" loading="lazy"/>
-      <span class="gallery-cap">Bottom view</span>
+    <div class="gallery-grid">
+      <div class="gallery-item">
+        <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Front-view.png" alt="SARATHI front view" loading="lazy"/>
+        <span class="gallery-cap">Front view</span>
+      </div>
+      <div class="gallery-item">
+        <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Top-view.png" alt="SARATHI top view" loading="lazy"/>
+        <span class="gallery-cap">Top view</span>
+      </div>
+      <div class="gallery-item">
+        <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Left-view.png" alt="SARATHI left view" loading="lazy"/>
+        <span class="gallery-cap">Left view</span>
+      </div>
+      <div class="gallery-item">
+        <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Perspective-view.png" alt="SARATHI perspective view" loading="lazy"/>
+        <span class="gallery-cap">Perspective view</span>
+      </div>
+      <div class="gallery-item">
+        <img src="https://raw.githubusercontent.com/Hellfire0313/intelligent-ground-vehicle/main/media/Bottom-view.png" alt="SARATHI bottom view" loading="lazy"/>
+        <span class="gallery-cap">Bottom view</span>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<section class="section" id="how">
-  <p class="section-label reveal">01 — Navigation</p>
-  <h2 class="section-title reveal">3-Tier Lane<br/>Following System</h2>
+<section id="how-it-works">
+  <div class="container">
+    <div class="sec-head"><span class="sec-num">02</span><span class="sec-title">3-Tier Lane Following</span></div>
+    <p class="sec-desc">Steering confidence degrades gracefully as lane visibility drops, rather than failing outright when one wall disappears.</p>
 
-  <div class="tiers reveal">
-    <div class="tier">
-      <div class="tier-num">01</div>
-      <h3>Tier 1 — Both Walls</h3>
-      <p>PD control on the midpoint between left and right yellow lines. Highest confidence. Uses a lookahead blend for smoother cornering.</p>
+    <div class="phases">
+      <div class="phase">
+        <span class="tag">Tier 1</span>
+        <h3>Both Walls Visible</h3>
+        <p>PD control on the midpoint between left and right yellow lines. Highest confidence. Uses a lookahead blend for smoother cornering.</p>
+      </div>
+      <div class="phase p-warn">
+        <span class="tag">Tier 2</span>
+        <h3>One Wall Visible</h3>
+        <p>Estimates lane centre using a learned lane width, EMA-filtered from Tier 1 observations. Falls back to a <code>280px</code> default until calibrated.</p>
+      </div>
+      <div class="phase p-danger">
+        <span class="tag">Tier 3</span>
+        <h3>No Walls Visible</h3>
+        <p>Holds last steering for a set number of frames, then creeps straight, then stops. Triggers a pivot-scan if a horizontal line was previously detected.</p>
+      </div>
     </div>
-    <div class="tier">
-      <div class="tier-num">02</div>
-      <h3>Tier 2 — One Wall</h3>
-      <p>Estimates lane centre using a learned lane width (EMA-filtered from Tier 1 observations). Falls back to a 280 px default until calibrated.</p>
-    </div>
-    <div class="tier">
-      <div class="tier-num">03</div>
-      <h3>Tier 3 — No Walls</h3>
-      <p>Holds last steering for a set number of frames, then creeps straight, then stops. Triggers a pivot-scan if a horizontal line was previously detected.</p>
-    </div>
-  </div>
-
-  <p class="section-label reveal" style="margin-top:5rem;">02 — Safety</p>
-  <h2 class="section-title reveal">Obstacle Avoidance<br/>State Machine</h2>
-  <p class="reveal" style="color:var(--muted); max-width:560px; font-size:0.9rem; margin-bottom:0;">
-    Powered by the Intel RealSense D455 depth camera. The robot analyses a forward corridor in real time and transitions through a full escape-and-recover state machine when an obstacle is detected.
-  </p>
-
-  <div class="obs-bars reveal">
-    <div class="obs-row">
-      <span class="obs-label" style="color:var(--yellow)">DETECT</span>
-      <div class="obs-bar-wrap"><div class="obs-bar-fill" style="width:90%; opacity:0.4"></div></div>
-      <span class="obs-dist">0.90 m</span>
-    </div>
-    <div class="obs-row">
-      <span class="obs-label" style="color:orange">WARN / ESC2</span>
-      <div class="obs-bar-wrap"><div class="obs-bar-fill" style="width:70%; opacity:0.65"></div></div>
-      <span class="obs-dist">0.70 m</span>
-    </div>
-    <div class="obs-row">
-      <span class="obs-label" style="color:#e05555">E-STOP</span>
-      <div class="obs-bar-wrap"><div class="obs-bar-fill" style="width:35%;"></div></div>
-      <span class="obs-dist">0.35 m</span>
-    </div>
-  </div>
-
-  <div class="tiers reveal" style="margin-top:1px;">
-    <div class="tier">
-      <div class="tier-num">D</div>
-      <h3>DODGE</h3>
-      <p>Steers around the obstacle using a combined depth + lane-space score to pick the clearest side. Direction is locked until the corridor clears.</p>
-    </div>
-    <div class="tier">
-      <div class="tier-num">E</div>
-      <h3>ESCAPE / ESCAPE2</h3>
-      <p>Two-phase reverse-then-forward manoeuvre. ESCAPE2 is a gentler variant triggered at warning range. Escalates to full ESCAPE if E-STOP is hit mid-manoeuvre.</p>
-    </div>
-    <div class="tier">
-      <div class="tier-num">R</div>
-      <h3>RECOVER</h3>
-      <p>Blends steering back toward normal lane following over a configurable number of frames once the corridor is confirmed clear. Cooldown prevents re-triggering.</p>
-    </div>
-  </div>
-  <p class="reveal" style="margin-top:1.5rem; font-size:0.85rem; color:var(--muted);">If no RealSense is connected, obstacle avoidance is silently disabled and lane following runs normally.</p>
-</section>
-
-<!-- ARUCO -->
-<section class="section" id="aruco">
-  <p class="section-label reveal">03 — Markers</p>
-  <h2 class="section-title reveal">ArUco Marker<br/>Navigation</h2>
-  <p class="reveal" style="color:var(--muted); max-width:560px; font-size:0.9rem;">
-    The webcam feed is scanned for <code style="font-family:'Space Mono',monospace; font-size:0.8rem; color:var(--yellow)">DICT_4X4_50</code> markers every frame. Only 4 IDs are used — the dictionary supports up to 50, leaving room for custom extensions.
-  </p>
-
-  <div class="aruco-grid reveal">
-    <div class="aruco-card">
-      <div class="aruco-id">01</div>
-      <div class="aruco-label">Turn Left</div>
-      <div class="aruco-sub">Held until left wall gap confirmed</div>
-    </div>
-    <div class="aruco-card">
-      <div class="aruco-id">02</div>
-      <div class="aruco-label">Turn Right</div>
-      <div class="aruco-sub">Held until right wall gap confirmed</div>
-    </div>
-    <div class="aruco-card">
-      <div class="aruco-id">03</div>
-      <div class="aruco-label">Stop</div>
-      <div class="aruco-sub">Halts robot. Clears on ID 4 or timeout</div>
-    </div>
-    <div class="aruco-card">
-      <div class="aruco-id">04</div>
-      <div class="aruco-label">Resume</div>
-      <div class="aruco-sub">Clears stop + suppresses false exits</div>
-    </div>
-  </div>
-
-  <div class="aruco-extend reveal">
-    IDs <span>05 – 50</span> are unused and available for extension —
-    speed zones &nbsp;·&nbsp; lap counters &nbsp;·&nbsp; U-turns &nbsp;·&nbsp;
-    checkpoints &nbsp;·&nbsp; task triggers &nbsp;·&nbsp; any custom behaviour
-    via <span>ARUCO_ID_MAP</span>
   </div>
 </section>
 
-<!-- SPECS -->
-<section class="section" id="specs">
-  <p class="section-label reveal">04 — Hardware</p>
-  <h2 class="section-title reveal">Technical<br/>Specifications</h2>
+<section id="obstacle" style="padding-top:0">
+  <div class="container">
+    <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">Obstacle Avoidance</span></div>
+    <p class="sec-desc">Powered by the Intel RealSense D455 depth camera. The robot analyses a forward corridor in real time and transitions through a full escape-and-recover state machine when an obstacle is detected.</p>
 
-  <div class="specs-grid reveal">
-    <div class="spec-row"><span class="spec-key">SBC</span><span class="spec-val">Raspberry Pi 5</span></div>
-    <div class="spec-row"><span class="spec-key">MCU</span><span class="spec-val">Arduino Mega 2560</span></div>
-    <div class="spec-row"><span class="spec-key">Lane Camera</span><span class="spec-val">USB Webcam — 640 × 480</span></div>
-    <div class="spec-row"><span class="spec-key">Depth Camera</span><span class="spec-val">Intel RealSense D455</span></div>
-    <div class="spec-row"><span class="spec-key">Drive</span><span class="spec-val">6× DC Motors — Cytron</span></div>
-    <div class="spec-row"><span class="spec-key">Steering</span><span class="spec-val">4× Servo — 4-Wheel, Rear Opposite</span></div>
-    <div class="spec-row"><span class="spec-key">Encoders</span><span class="spec-val">6× Quadrature — RPM @ 200 ms</span></div>
-    <div class="spec-row"><span class="spec-key">Serial</span><span class="spec-val">UART 9600 baud</span></div>
-    <div class="spec-row"><span class="spec-key">Chassis Width</span><span class="spec-val">60 cm</span></div>
-    <div class="spec-row"><span class="spec-key">ArUco Dict</span><span class="spec-val">DICT_4X4_50</span></div>
+    <div class="obs-table">
+      <div class="obs-row">
+        <span class="obs-label" style="color:var(--ink-dim)">DETECT</span>
+        <div class="obs-bar-wrap"><div class="obs-bar-fill" style="width:90%; background:var(--ink-dim)"></div></div>
+        <span class="obs-dist">0.90 m</span>
+      </div>
+      <div class="obs-row">
+        <span class="obs-label" style="color:var(--yellow)">WARN / ESC2</span>
+        <div class="obs-bar-wrap"><div class="obs-bar-fill" style="width:70%; background:var(--yellow)"></div></div>
+        <span class="obs-dist">0.70 m</span>
+      </div>
+      <div class="obs-row">
+        <span class="obs-label" style="color:var(--orange)">E-STOP</span>
+        <div class="obs-bar-wrap"><div class="obs-bar-fill" style="width:35%; background:var(--orange)"></div></div>
+        <span class="obs-dist">0.35 m</span>
+      </div>
+    </div>
+
+    <div class="phases" style="margin-top:1px;">
+      <div class="phase">
+        <span class="tag">Dodge</span>
+        <h3>Lateral Avoidance</h3>
+        <p>Steers around the obstacle using a combined depth + lane-space score to pick the clearest side. Direction is locked until the corridor clears.</p>
+      </div>
+      <div class="phase">
+        <span class="tag">Escape</span>
+        <h3>Reverse Manoeuvre</h3>
+        <p>Two-phase reverse-then-forward manoeuvre. ESCAPE2 is a gentler variant triggered at warning range. Escalates to full ESCAPE if E-STOP is hit mid-manoeuvre.</p>
+      </div>
+      <div class="phase">
+        <span class="tag">Recover</span>
+        <h3>Return to Lane</h3>
+        <p>Blends steering back toward normal lane following over a configurable number of frames once the corridor is confirmed clear. Cooldown prevents re-triggering.</p>
+      </div>
+    </div>
+
+    <div class="note-box">If no RealSense is connected, obstacle avoidance is <span>silently disabled</span> and lane following runs normally.</div>
   </div>
 </section>
 
-<!-- DEMO VIDEOS -->
-<section class="section" id="demo">
-  <p class="section-label reveal">05 — Demo</p>
-  <h2 class="section-title reveal">SARATHI<br/>in Action</h2>
-  <p class="reveal" style="color:var(--muted); max-width:520px; font-size:0.9rem; margin-bottom:0;">
-    Autonomous runs showing lane following, ArUco marker detection, and obstacle avoidance in real time.
-  </p>
+<section id="aruco">
+  <div class="container">
+    <div class="sec-head"><span class="sec-num">04</span><span class="sec-title">ArUco Marker Navigation</span></div>
+    <p class="sec-desc">The webcam feed is scanned for <code style="font-family:'IBM Plex Mono',monospace;background:var(--paper-2);padding:2px 7px;font-size:.85rem">DICT_4X4_50</code> markers every frame. Only 4 IDs are used — the dictionary supports up to 50, leaving room for custom extensions.</p>
 
-  <div class="video-grid reveal">
+    <table class="spec">
+      <thead><tr><th>ID</th><th>Behaviour</th><th>Clears On</th></tr></thead>
+      <tbody>
+        <tr><td><code>01</code></td><td>Turn left</td><td><span class="prio p2">Left wall gap confirmed</span></td></tr>
+        <tr><td><code>02</code></td><td>Turn right</td><td><span class="prio p2">Right wall gap confirmed</span></td></tr>
+        <tr><td><code>03</code></td><td>Stop — halts robot</td><td><span class="prio p1">ID 4 or timeout</span></td></tr>
+        <tr><td><code>04</code></td><td>Resume — clears stop, suppresses false exits</td><td><span class="prio p3">Immediate</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="note-box">IDs <span>05–50</span> are unused and available for extension — speed zones · lap counters · U-turns · checkpoints · task triggers · any custom behaviour via <span>ARUCO_ID_MAP</span></div>
+  </div>
+</section>
+
+<section id="architecture" style="padding-top:0">
+  <div class="container">
+    <div class="sec-head"><span class="sec-num">05</span><span class="sec-title">Control Pipeline</span></div>
+    <p class="sec-desc">Perception on the Raspberry Pi 5 feeds a steering and safety decision layer; commands go out to the Arduino Mega over UART.</p>
+
+    <div class="diagram-wrap">
+      <svg viewBox="0 0 1000 200" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+        <line x1="90" y1="100" x2="910" y2="100" stroke="#1b1a17" stroke-width="1.5"/>
+        <g>
+          <rect x="20" y="60" width="140" height="80" fill="#f7f6f0" stroke="#1b1a17" stroke-width="1.5"/>
+          <text x="90" y="85" text-anchor="middle" font-size="10" fill="#d84e1f" font-weight="700">CAPTURE</text>
+          <text x="90" y="103" text-anchor="middle" font-size="10.5" fill="#1b1a17" font-weight="600">Webcam + D455</text>
+          <text x="90" y="120" text-anchor="middle" font-size="8.5" fill="#5c594e">640×480 / depth</text>
+        </g>
+        <g>
+          <rect x="215" y="60" width="140" height="80" fill="#f7f6f0" stroke="#1b1a17" stroke-width="1.5"/>
+          <text x="285" y="85" text-anchor="middle" font-size="10" fill="#d84e1f" font-weight="700">PERCEIVE</text>
+          <text x="285" y="103" text-anchor="middle" font-size="10.5" fill="#1b1a17" font-weight="600">Lane + ArUco</text>
+          <text x="285" y="120" text-anchor="middle" font-size="8.5" fill="#5c594e">CV line + marker detect</text>
+        </g>
+        <g>
+          <rect x="410" y="60" width="140" height="80" fill="#f7f6f0" stroke="#1b1a17" stroke-width="1.5"/>
+          <text x="480" y="85" text-anchor="middle" font-size="10" fill="#d84e1f" font-weight="700">FUSE</text>
+          <text x="480" y="103" text-anchor="middle" font-size="10.5" fill="#1b1a17" font-weight="600">Tier selector</text>
+          <text x="480" y="120" text-anchor="middle" font-size="8.5" fill="#5c594e">wall state + depth</text>
+        </g>
+        <g>
+          <rect x="605" y="60" width="140" height="80" fill="#f7f6f0" stroke="#1b1a17" stroke-width="1.5"/>
+          <text x="675" y="85" text-anchor="middle" font-size="10" fill="#d84e1f" font-weight="700">DECIDE</text>
+          <text x="675" y="103" text-anchor="middle" font-size="10.5" fill="#1b1a17" font-weight="600">PD + state machine</text>
+          <text x="675" y="120" text-anchor="middle" font-size="8.5" fill="#5c594e">steering, avoidance</text>
+        </g>
+        <g>
+          <rect x="800" y="60" width="140" height="80" fill="#f7f6f0" stroke="#1b1a17" stroke-width="1.5"/>
+          <text x="870" y="85" text-anchor="middle" font-size="10" fill="#d84e1f" font-weight="700">EXECUTE</text>
+          <text x="870" y="103" text-anchor="middle" font-size="10.5" fill="#1b1a17" font-weight="600">Arduino Mega</text>
+          <text x="870" y="120" text-anchor="middle" font-size="8.5" fill="#5c594e">motors, servos, encoders</text>
+        </g>
+        <polygon points="160,100 172,95 172,105" fill="#1b1a17"/>
+        <polygon points="355,100 367,95 367,105" fill="#1b1a17"/>
+        <polygon points="550,100 562,95 562,105" fill="#1b1a17"/>
+        <polygon points="745,100 757,95 757,105" fill="#1b1a17"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section id="hardware">
+  <div class="container">
+    <div class="sec-head"><span class="sec-num">06</span><span class="sec-title">Hardware Specification</span></div>
+    <p class="sec-desc">Split compute — perception on the Pi, real-time motor and sensor I/O on the Mega — connected over UART.</p>
+
+    <div class="hw-list">
+      <div class="hw-row"><div class="name">SBC</div><div class="desc">Raspberry Pi 5</div></div>
+      <div class="hw-row"><div class="name">MCU</div><div class="desc">Arduino Mega 2560</div></div>
+      <div class="hw-row"><div class="name">Lane camera</div><div class="desc">USB webcam — 640 × 480</div></div>
+      <div class="hw-row"><div class="name">Depth camera</div><div class="desc">Intel RealSense D455</div></div>
+      <div class="hw-row"><div class="name">Drive</div><div class="desc">6× DC motors — Cytron drivers</div></div>
+      <div class="hw-row"><div class="name">Steering</div><div class="desc">4× servo — 4-wheel, rear opposite</div></div>
+      <div class="hw-row"><div class="name">Encoders</div><div class="desc">6× quadrature — RPM sampled every 200ms</div></div>
+      <div class="hw-row"><div class="name">Serial</div><div class="desc">UART @ 9600 baud</div></div>
+      <div class="hw-row"><div class="name">Chassis width</div><div class="desc">60 cm</div></div>
+      <div class="hw-row"><div class="name">ArUco dictionary</div><div class="desc">DICT_4X4_50</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="demo">
+  <div class="container">
+    <div class="sec-head"><span class="sec-num">07</span><span class="sec-title">Demo Run</span></div>
+    <p class="sec-desc">Autonomous lap showing lane following, ArUco marker detection, and obstacle avoidance in real time.</p>
+
     <div class="video-card">
       <div class="video-label">Objective Completion</div>
       <div class="video-wrap">
-        <iframe
-          src="https://drive.google.com/file/d/1tZpg5JQarStsp9MDsovBhw0quo29S-X6/preview"
-          allow="autoplay"
-          allowfullscreen>
-        </iframe>
+        <iframe src="https://drive.google.com/file/d/1tZpg5JQarStsp9MDsovBhw0quo29S-X6/preview" allow="autoplay" allowfullscreen></iframe>
       </div>
       <p class="video-desc">Full autonomous lap with 3-tier lane following and PD steering control.</p>
     </div>
   </div>
 </section>
 
-<!-- FOOTER -->
+<div class="author-section">
+  <div class="container">
+    <div class="tb-frame" style="max-width:600px">
+      <div class="tb-top" style="padding:28px 32px">
+        <div class="tb-eyebrow">Team Sarathi</div>
+        <h1 style="font-size:1.5rem">BVM Engineering College</h1>
+        <p>IGVC Robofest 5.0 entry — lane following, obstacle avoidance, marker navigation.</p>
+      </div>
+      <div class="tb-fields" style="grid-template-columns:repeat(2,1fr)">
+        <div class="tb-field"><div class="k">GitHub</div><div class="v"><a href="https://github.com/Hellfire0313/intelligent-ground-vehicle" style="color:var(--ink);text-decoration:none">intelligent-ground-vehicle</a></div></div>
+        <div class="tb-field"><div class="k">About</div><div class="v"><a href="https://hellfire0313.github.io/" style="color:var(--orange);text-decoration:none">hellfire0313.github.io →</a></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <footer>
-  <span class="footer-name">Team Sarathi &nbsp;·&nbsp; BVM Engineering College</span>
-  <span class="footer-right">IGVC Robofest 5.0 &nbsp;·&nbsp; MIT License</span>
+  <a href="https://hellfire0313.github.io">← BACK TO PORTFOLIO</a> &nbsp;·&nbsp; SARATHI — IGVC ROBOFEST 5.0 — MIT LICENSE
 </footer>
 
-<script>
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        observer.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.12 });
-
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-</script>
 </body>
 </html>
